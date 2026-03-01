@@ -30,9 +30,17 @@ dependencies = [
 langchain = ["langchain>=0.1.0"]
 crewai = ["crewai>=0.1.0"]
 all = ["langchain>=0.1.0", "crewai>=0.1.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
 [project.urls]
 Homepage = "https://github.com/curtisrearden/aegis"
 Documentation = "https://github.com/curtisrearden/aegis#readme"
 Repository = "https://github.com/curtisrearden/aegis"
 Issues = "https://github.com/curtisrearden/aegis/issues"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
