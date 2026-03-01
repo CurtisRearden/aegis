@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aegis — Developer Integration Workflow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-light: #2A3F6B;
+    --teal: #0D9488;
+    --teal-light: #14B8A6;
+    --teal-glow: rgba(13, 148, 136, 0.15);
+    --emerald: #059669;
+    --amber: #D97706;
+    --rose: #E11D48;
+    --slate-50: #F8FAFC;
+    --slate-100: #F1F5F9;
+    --slate-200: #E2E8F0;
+    --slate-300: #CBD5E1;
+    --slate-400: #94A3B8;
+    --slate-500: #64748B;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1E293B;
+    --slate-900: #0F172A;
+    --bg: #0B1120;
+    --card-bg: rgba(30, 41, 59, 0.6);
+    --card-border: rgba(51, 65, 85, 0.5);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--slate-200);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grain */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 20% 0%, rgba(13, 148, 136, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(27, 42, 74, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--teal);
+    border-radius: 100px;
+    color: var(--teal-light);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .header h1 span { color: var(--teal-light); }
+
+  .header p {
+    font-size: 16px;
+    color: var(--slate-400);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Flow container */
+  .flow {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Vertical connector line */
+  .connector {
+    width: 2px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--teal), var(--teal-light));
+    margin: 0 auto;
+    position: relative;
+    opacity: 0.5;
+  }
+
+  .connector::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--teal-light);
+  }
+
+  /* Step cards */
+  .step {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-light));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .step:hover {
+    border-color: rgba(13, 148, 136, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(13, 148, 136, 0.08);
+  }
+
+  .step:hover::before { opacity: 1; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .step-number.user { background: rgba(13, 148, 136, 0.15); color: var(--teal-light); }
+  .step-number.agent { background: rgba(27, 42, 74, 0.6); color: #7C9FE8; border: 1px solid rgba(124, 159, 232, 0.3); }
+  .step-number.audit { background: rgba(217, 119, 6, 0.15); color: #FBBF24; }
+  .step-number.decision { background: rgba(225, 29, 72, 0.15); color: #FB7185; }
+  .step-number.execute { background: rgba(5, 150, 105, 0.15); color: #34D399; }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .step-label.user { color: var(--teal-light); }
+  .step-label.agent { color: #7C9FE8; }
+  .step-label.audit { color: #FBBF24; }
+  .step-label.decision { color: #FB7185; }
+  .step-label.execute { color: #34D399; }
+
+  .step-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .step-body {
+    padding-left: 56px;
+  }
+
+  .step-description {
+    font-size: 14px;
+    color: var(--slate-400);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--slate-700);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--slate-300);
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+
+  .code-block .comment { color: var(--slate-500); }
+  .code-block .keyword { color: #C084FC; }
+  .code-block .string { color: #34D399; }
+  .code-block .func { color: #60A5FA; }
+  .code-block .param { color: #FBBF24; }
+  .code-block .op { color: var(--slate-400); }
+
+  /* Module grid */
+  .modules {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .module {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--slate-700);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .module:hover {
+    border-color: rgba(13, 148, 136, 0.4);
+    background: rgba(13, 148, 136, 0.05);
+  }
+
+  .module-icon { font-size: 22px; margin-bottom: 6px; }
+
+  .module-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--slate-200);
+    margin-bottom: 4px;
+  }
+
+  .module-desc {
+    font-size: 11px;
+    color: var(--slate-500);
+    line-height: 1.4;
+  }
+
+  /* Decision branches */
+  .branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .branch {
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid;
+  }
+
+  .branch.approve {
+    background: rgba(5, 150, 105, 0.08);
+    border-color: rgba(5, 150, 105, 0.3);
+  }
+  .branch.flag {
+    background: rgba(217, 119, 6, 0.08);
+    border-color: rgba(217, 119, 6, 0.3);
+  }
+  .branch.block {
+    background: rgba(225, 29, 72, 0.08);
+    border-color: rgba(225, 29, 72, 0.3);
+  }
+
+  .branch-icon { font-size: 24px; margin-bottom: 8px; }
+
+  .branch-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .branch.approve .branch-label { color: #34D399; }
+  .branch.flag .branch-label { color: #FBBF24; }
+  .branch.block .branch-label { color: #FB7185; }
+
+  .branch-desc {
+    font-size: 12px;
+    color: var(--slate-400);
+    line-height: 1.5;
+  }
+
+  /* Integration section */
+  .integrations {
+    margin-top: 56px;
+    text-align: center;
+  }
+
+  .integrations h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .integrations p {
+    font-size: 14px;
+    color: var(--slate-400);
+    margin-bottom: 28px;
+  }
+
+  .integration-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .integration-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    transition: all 0.2s ease;
+  }
+
+  .integration-card:hover {
+    border-color: rgba(13, 148, 136, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .integration-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .integration-card p {
+    font-size: 12px;
+    color: var(--slate-400);
+    line-height: 1.5;
+    text-align: left;
+    margin-bottom: 12px;
+  }
+
+  .integration-card .code-block {
+    font-size: 11px;
+    padding: 10px 14px;
+    margin-bottom: 0;
+  }
+
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">Aegis Protocol — Developer Guide</div>
+    <h1>Aegis<br><span>Verification Workflow</span></h1>
+    <p>How Aegis intercepts, verifies, and controls autonomous AI purchases — from user request to transaction execution.</p>
+  </div>
+
+  <!-- Flow -->
+  <div class="flow">
+
+    <!-- Step 1: User Request -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number user">1</div>
+        <div>
+          <div class="step-label user">User Layer</div>
+          <div class="step-title">User Issues Purchase Instruction</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-description">The user gives their AI agent a natural language instruction that will result in a purchase. The agent begins executing the task.</p>
+        <div class="code-block">
+          <span class="comment"># Example user instructions that trigger purchase verification</span><br>
+          <span class="string">"Book me a flight to Austin under $400 round trip"</span><br>
+          <span class="string">"Order 50 units of SKU-4421 from our approved vendors"</span><br>
+          <span class="string">"Find and purchase the best-rated noise canceling headphones under $300"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <!-- Step 2: Agent Proposes Purchase -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number agent">2</div>
+        <div>
+          <div class="step-label agent">Agent Layer</div>
+          <div class="step-title">Agent Researches and Proposes Transaction</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-description">The purchasing agent searches, compares options, and selects a product/service. Before executing payment, it emits a structured purchase intent object that the audit layer intercepts.</p>
+        <div class="code-block">
+          <span class="comment"># The agent creates a PurchaseIntent before executing</span><br>
+          <span class="keyword">purchase_intent</span> <span class="op">=</span> {<br>
+          &nbsp;&nbsp;<span class="param">"item"</span>: <span class="string">"Sony WH-1000XM5 Headphones"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"price"</span>: <span class="string">278.00</span>,<br>
+          &nbsp;&nbsp;<span class="param">"currency"</span>: <span class="string">"USD"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"seller"</span>: <span class="string">"electronics-deals-store.com"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"original_instruction"</span>: <span class="string">"best noise canceling headphones under $300"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"payment_method"</span>: <span class="string">"card_ending_4242"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"terms"</span>: <span class="string">"non-refundable, ships in 5-7 days"</span><br>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <!-- Step 3: Audit Agent Verification -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number audit">3</div>
+        <div>
+          <div class="step-label audit">Verification Layer</div>
+          <div class="step-title">Audit Agent Runs 5 Verification Modules</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-description">The purchase intent is intercepted by Aegis, which runs five independent verification checks in parallel. Each module returns a risk score (0–100) and a confidence level.</p>
+        <div class="modules">
+          <div class="module">
+            <div class="module-icon">💰</div>
+            <div class="module-name">Price Check</div>
+            <div class="module-desc">Compare against market prices across multiple sources</div>
+          </div>
+          <div class="module">
+            <div class="module-icon">🎯</div>
+            <div class="module-name">Intent Match</div>
+            <div class="module-desc">Verify purchase aligns with the original user request</div>
+          </div>
+          <div class="module">
+            <div class="module-icon">🔑</div>
+            <div class="module-name">Authorization</div>
+            <div class="module-desc">Check budgets, limits, and spending permissions</div>
+          </div>
+          <div class="module">
+            <div class="module-icon">🛡️</div>
+            <div class="module-name">Seller Verify</div>
+            <div class="module-desc">Validate merchant legitimacy and reputation</div>
+          </div>
+          <div class="module">
+            <div class="module-icon">📋</div>
+            <div class="module-name">Terms Review</div>
+            <div class="module-desc">Analyze refund policy, auto-renew, hidden fees</div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top: 16px;">
+          <span class="comment"># Developer integration — one line to verify</span><br>
+          <span class="keyword">from</span> aegis <span class="keyword">import</span> <span class="func">verify_purchase</span><br><br>
+          <span class="keyword">result</span> <span class="op">=</span> <span class="keyword">await</span> <span class="func">verify_purchase</span>(<br>
+          &nbsp;&nbsp;<span class="param">intent</span><span class="op">=</span>purchase_intent,<br>
+          &nbsp;&nbsp;<span class="param">policy</span><span class="op">=</span><span class="string">"default"</span> &nbsp;<span class="comment"># or custom policy config</span><br>
+          )<br><br>
+          <span class="comment"># result.decision → "approve" | "flag" | "block"</span><br>
+          <span class="comment"># result.scores → { price: 85, intent: 92, auth: 100, seller: 34, terms: 60 }</span><br>
+          <span class="comment"># result.reasons → ["Seller has no verified business registration", ...]</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <!-- Step 4: Decision Engine -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number decision">4</div>
+        <div>
+          <div class="step-label decision">Decision Layer</div>
+          <div class="step-title">Policy Engine Returns Decision</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-description">Module scores are aggregated and evaluated against the user's configured policy. The decision engine returns one of three outcomes:</p>
+        <div class="branches">
+          <div class="branch approve">
+            <div class="branch-icon">✅</div>
+            <div class="branch-label">APPROVE</div>
+            <div class="branch-desc">All checks pass. Transaction proceeds automatically.</div>
+          </div>
+          <div class="branch flag">
+            <div class="branch-icon">⚠️</div>
+            <div class="branch-label">FLAG</div>
+            <div class="branch-desc">Concerns detected. Transaction paused. User notified with specific issues for review.</div>
+          </div>
+          <div class="branch block">
+            <div class="branch-icon">🚫</div>
+            <div class="branch-label">BLOCK</div>
+            <div class="branch-desc">Critical risk identified. Transaction rejected. Detailed explanation provided.</div>
+          </div>
+        </div>
+        <div class="code-block" style="margin-top: 16px;">
+          <span class="comment"># Handle the verification decision in your agent</span><br>
+          <span class="keyword">if</span> result.decision <span class="op">==</span> <span class="string">"approve"</span>:<br>
+          &nbsp;&nbsp;<span class="keyword">await</span> <span class="func">execute_purchase</span>(purchase_intent)<br><br>
+          <span class="keyword">elif</span> result.decision <span class="op">==</span> <span class="string">"flag"</span>:<br>
+          &nbsp;&nbsp;<span class="keyword">await</span> <span class="func">notify_user</span>(<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="param">message</span><span class="op">=</span><span class="string">f"Purchase flagged: {result.reasons}"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="param">options</span><span class="op">=</span>[<span class="string">"approve_anyway"</span>, <span class="string">"cancel"</span>, <span class="string">"find_alternative"</span>]<br>
+          &nbsp;&nbsp;)<br><br>
+          <span class="keyword">elif</span> result.decision <span class="op">==</span> <span class="string">"block"</span>:<br>
+          &nbsp;&nbsp;<span class="keyword">await</span> <span class="func">reject_purchase</span>(<span class="param">reason</span><span class="op">=</span>result.reasons)
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"></div>
+
+    <!-- Step 5: Execute + Log -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number execute">5</div>
+        <div>
+          <div class="step-label execute">Execution Layer</div>
+          <div class="step-title">Execute Transaction and Log Audit Trail</div>
+        </div>
+      </div>
+      <div class="step-body">
+        <p class="step-description">Approved transactions execute normally. Every verification — whether approved, flagged, or blocked — is logged to an immutable audit trail for compliance, analytics, and continuous improvement of verification accuracy.</p>
+        <div class="code-block">
+          <span class="comment"># Audit log entry (automatic — no developer action needed)</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="param">"timestamp"</span>: <span class="string">"2026-03-01T14:32:00Z"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"purchase_intent"</span>: { <span class="comment">... full intent object ...</span> },<br>
+          &nbsp;&nbsp;<span class="param">"verification_scores"</span>: { <span class="param">"price"</span>: <span class="string">85</span>, <span class="param">"intent"</span>: <span class="string">92</span>, <span class="param">"auth"</span>: <span class="string">100</span>, <span class="param">"seller"</span>: <span class="string">34</span>, <span class="param">"terms"</span>: <span class="string">60</span> },<br>
+          &nbsp;&nbsp;<span class="param">"decision"</span>: <span class="string">"flag"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"reasons"</span>: [<span class="string">"Unverified seller"</span>, <span class="string">"Non-refundable"</span>],<br>
+          &nbsp;&nbsp;<span class="param">"user_action"</span>: <span class="string">"cancelled"</span>,<br>
+          &nbsp;&nbsp;<span class="param">"outcome"</span>: <span class="string">"saved $278 on suspicious merchant"</span><br>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Integration Section -->
+  <div class="integrations">
+    <h2>Framework Integrations</h2>
+    <p>Drop-in integration with all major agent frameworks</p>
+    <div class="integration-grid">
+      <div class="integration-card">
+        <h3>LangChain</h3>
+        <p>Use as a Tool in any LangChain agent chain</p>
+        <div class="code-block">
+          <span class="keyword">from</span> aegis.integrations <span class="keyword">import</span><br>&nbsp;&nbsp;<span class="func">LangChainAuditTool</span><br><br>
+          tools <span class="op">=</span> [<span class="func">LangChainAuditTool</span>()]
+        </div>
+      </div>
+      <div class="integration-card">
+        <h3>CrewAI</h3>
+        <p>Add as an agent tool for any purchasing crew</p>
+        <div class="code-block">
+          <span class="keyword">from</span> aegis.integrations <span class="keyword">import</span><br>&nbsp;&nbsp;<span class="func">CrewAIAuditTool</span><br><br>
+          agent <span class="op">=</span> <span class="func">Agent</span>(<span class="param">tools</span><span class="op">=</span>[<span class="func">CrewAIAuditTool</span>()])
+        </div>
+      </div>
+      <div class="integration-card">
+        <h3>Claude MCP</h3>
+        <p>Native MCP server for Claude-based agents</p>
+        <div class="code-block">
+          <span class="comment">// claude_desktop_config.json</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="param">"mcpServers"</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="param">"audit"</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="param">"command"</span>: <span class="string">"aegis-mcp"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          }
+        </div>
+      </div>
+      <div class="integration-card">
+        <h3>REST API</h3>
+        <p>Universal HTTP endpoint for any framework</p>
+        <div class="code-block">
+          <span class="func">POST</span> <span class="string">/v1/verify</span><br>
+          <span class="param">Authorization</span>: Bearer sk_...<br>
+          <span class="param">Content-Type</span>: application/json<br><br>
+          { <span class="param">"intent"</span>: { ... } }
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+
+</body>
+</html>

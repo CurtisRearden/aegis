@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aegis-verify"
+version = "0.1.0"
+description = "Independent verification layer for autonomous AI agent purchases"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [
+    { name = "curtisrearden", email = "curtisrearden@protonmail.com" }
+]
+keywords = ["ai", "agents", "verification", "purchases", "safety", "audit"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Office/Business :: Financial",
+]
+dependencies = [
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+langchain = ["langchain>=0.1.0"]
+crewai = ["crewai>=0.1.0"]
+all = ["langchain>=0.1.0", "crewai>=0.1.0"]
+
+[project.urls]
+Homepage = "https://github.com/curtisrearden/aegis"
+Documentation = "https://github.com/curtisrearden/aegis#readme"
+Repository = "https://github.com/curtisrearden/aegis"
+Issues = "https://github.com/curtisrearden/aegis/issues"
