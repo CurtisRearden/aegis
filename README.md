@@ -78,6 +78,19 @@ User Request → Agent Proposes Purchase → Aegis Verifies → Approve/Flag/Blo
 
 See the full [Developer Workflow Diagram](docs/workflow.html) for details.
 
+## Try the Demo
+
+See Aegis in action with three real-world scenarios — a good purchase, a sketchy deal, and a rogue agent:
+
+```bash
+git clone https://github.com/CurtisRearden/aegis.git
+cd aegis
+pip install aegis-verify
+python demo.py
+```
+
+The demo runs all five verification modules against each scenario and shows the approve/flag/block decision with detailed scoring and reasons — all in milliseconds, before any money moves.
+
 ## Roadmap
 
 - [x] Core verification engine with 5 modules
