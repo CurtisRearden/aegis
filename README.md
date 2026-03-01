@@ -65,10 +65,17 @@ agent = Agent(tools=[CrewAIAuditTool()])
 {
   "mcpServers": {
     "aegis": {
-      "command": "aegis-mcp"
+      "command": "python",
+      "args": ["/path/to/aegis_mcp_server.py"]
     }
   }
 }
+```
+
+Install and run:
+```bash
+pip install aegis-verify "mcp[cli]"
+python aegis_mcp_server.py
 ```
 
 ## How It Works
@@ -96,7 +103,7 @@ The demo runs all five verification modules against each scenario and shows the 
 - [x] Core verification engine with 5 modules
 - [x] LangChain integration
 - [x] CrewAI integration
-- [ ] Claude MCP server
+- [x] Claude MCP server
 - [ ] Hosted API with dashboard
 - [ ] Seller-side verification tools
 - [ ] Decentralized validator network
